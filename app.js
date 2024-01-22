@@ -73,7 +73,6 @@ let Player = function(id, name){
             bullet.x += Math.cos(bullet.direction) * bullet.speed;
             bullet.y += Math.sin(bullet.direction) * bullet.speed;
 
-            // Remove bullets that go off-screen
             if (
                 bullet.x < 0 ||
                 bullet.y < 0 ||
@@ -159,7 +158,6 @@ function handleBulletObstacleCollision(bullet) {
             bullet.y > obstacle.y &&
             bullet.y < obstacle.y + obstacleHeight
         ) {
-            // Bullet has collided with an obstacle
             return true;
         }
     }
