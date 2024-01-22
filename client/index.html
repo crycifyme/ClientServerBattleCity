@@ -90,7 +90,6 @@
         else if (key === 'a') socket.emit('keyPress', {inputId: 'left', state: true});
         else if (key === 'w') socket.emit('keyPress', {inputId: 'up', state: true});
 
-        // Pressed key for shooting
         else if (key === ' ') socket.emit('keyPress', {inputId: 'shoot', state: true});
     };
 
@@ -101,7 +100,6 @@
         else if (key === 'a') socket.emit('keyPress', {inputId: 'left', state: false});
         else if (key === 'w') socket.emit('keyPress', {inputId: 'up', state: false});
 
-        // Released key for shooting
         else if (key === ' ') socket.emit('keyPress', {inputId: 'shoot', state: false});
     };
 </script>
