@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer Game</title>
+    <style>
+        #startMenu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div id="startMenu">
+    <h2>Enter Your Name</h2>
+    <form id="nameForm">
+        <input type="text" id="playerName" placeholder="Your Name" required>
+        <button type="submit">Start Game</button>
+    </form>
+</div>
+<canvas id="ctx" width="1400" height="700" style="border: 1px solid #000000; background-color: black;"></canvas>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<img id="playerImage1" src="/client/tank2.png" style="display:none;">
+<img id="playerImage2" src="/client/tank1.png" style="display:none;">
+<script>
+    let ctx = document.getElementById("ctx").getContext("2d");
+    ctx.font = '12px Arial';
+    let playerName = "";
+    let socket = io('26.158.121.128:3000');
+    //let socket = io();
+    function showStartMenu() {
+        document.getElementById("startMenu").style.display = "block";
+    }
+    function hideStartMenu() {
+        document.getElementById("startMenu").style.display = "none";
+    }
+    document.getElementById("nameForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+        playerName = document.getElementById("playerName").value;
+        hideStartMenu();
+    });
+
+    socket.on('newPositions', function (data) {
+        if (playerName === "") {
+            showStartMenu();
+            return;
+        }
+        ctx.clearRect(0, 0, 1400, 700);
+
+        for (let i = 0; i < data.obstacles.length; i++) {
+            let obstacle = data.obstacles[i];
+            let img = new Image();
+            img.src = obstacle.image;
+            ctx.drawImage(img, obstacle.x, obstacle.y, 31, 31);
+        }
+
+        for (let i = 0; i < data.players.length; i++) {
+            let player = data.players[i];
+            let img = new Image();
+            img.src = player.image;
+            ctx.fillText(playerName, player.x - 10, player.y - 20); // Display player name
+            ctx.fillText(`HP: ${player.hp}`, player.x - 10, player.y + 40);
+            ctx.save();
+            ctx.translate(player.x + 15, player.y + 15);
+            ctx.rotate((Math.PI / 180) * player.rotation);
+            ctx.drawImage(img, -15, -15, 30, 30);
+            ctx.restore();
+            for (let j = 0; j < player.bullets.length; j++) {
+                let bullet = player.bullets[j];
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = 'yellow';
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+    });
+
+
+
+    document.onkeydown = function(event) {
+        let key = event.key.toLowerCase();
+        if (key === 'd') socket.emit('keyPress', {inputId: 'right', state: true});
+        else if (key === 's') socket.emit('keyPress', {inputId: 'down', state: true});
+        else if (key === 'a') socket.emit('keyPress', {inputId: 'left', state: true});
+        else if (key === 'w') socket.emit('keyPress', {inputId: 'up', state: true});
+
+        // Pressed key for shooting
+        else if (key === ' ') socket.emit('keyPress', {inputId: 'shoot', state: true});
+    };
+
+    document.onkeyup = function(event) {
+        let key = event.key.toLowerCase();
+        if (key === 'd') socket.emit('keyPress', {inputId: 'right', state: false});
+        else if (key === 's') socket.emit('keyPress', {inputId: 'down', state: false});
+        else if (key === 'a') socket.emit('keyPress', {inputId: 'left', state: false});
+        else if (key === 'w') socket.emit('keyPress', {inputId: 'up', state: false});
+
+        // Released key for shooting
+        else if (key === ' ') socket.emit('keyPress', {inputId: 'shoot', state: false});
+    };
+</script>
